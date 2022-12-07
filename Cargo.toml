@@ -1,14 +1,15 @@
 [package]
-name = "xeno"
+name = "xeno-rs"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
 homepage = "https://github.com/xmoezzz/xeno"
 repository = "https://github.com/xmoezzz/xeno"
+description = "Extracting archives and firmwares in rust"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 apple-dmg = "0.1.0"
-squashfs-ng = "0.1.2"
+# squashfs-ng = "0.1.2"
