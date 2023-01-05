@@ -2,6 +2,9 @@ use std::{io::Read, path::PathBuf};
 
 use crate::utils::error::ArchiveError;
 mod tar;
+mod zip;
+mod seven_zip;
+mod dmg;
 
 pub enum ReadFormat {
     SevenZip,
@@ -104,8 +107,8 @@ pub trait Entry {
     fn file_type(&self) -> FileType; 
     fn hand_link(&self) -> Option<PathBuf>;
     fn path_name(&self) -> std::io::Result<PathBuf>;
-    fn gid(&self) -> std::io::Result<u64>;
-    fn uid(&self) -> std::io::Result<u64>;
+    fn gid(&self) -> std::io::Result<Option<u64>>;
+    fn uid(&self) -> std::io::Result<Option<u64>>;
     fn size(&self) -> u64;
     fn sym_link(&self) -> Option<PathBuf>;
 }

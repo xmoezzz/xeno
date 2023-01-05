@@ -1,0 +1,24 @@
+[package]
+name = "xeno-rs"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+homepage = "https://github.com/xmoezzz/xeno"
+repository = "https://github.com/xmoezzz/xeno"
+description = "Extracting archives and firmwares in rust"
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+apple-dmg = "0.2.0"
+# squashfs-ng = "0.1.2"
+tar = "0.4"
+zip = "0.6.3"
+lzma-rs = "0.2"
+flate2 = "1.0.25"
+bzip2 = "0.4.3"
+zstd = "0.12.1+zstd.1.5.2"
+sevenz-rust = { path = "../sevenz-rust", features = ["aes256"]}
+
+thiserror = "*"

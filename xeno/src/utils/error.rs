@@ -12,5 +12,7 @@ pub enum ArchiveError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("The archive is encrypted")]
-    Encrypted
+    Encrypted,
+    #[error("7zip error: {0}")]
+    SevenZipError(#[source] sevenz_rust::Error),
 }

@@ -51,12 +51,14 @@ impl<'a, R: Read> Entry for TarEntry<'a, R> {
         self.inner.size()
     }
 
-    fn gid(&self) -> std::io::Result<u64> {
-        self.inner.header().gid()
+    fn gid(&self) -> std::io::Result<Option<u64>> {
+        let gid = self.inner.header().gid()?;
+        Ok(Some(gid))
     }
 
-    fn uid(&self) -> std::io::Result<u64> {
-        self.inner.header().uid()
+    fn uid(&self) -> std::io::Result<Option<u64>> {
+        let uid = self.inner.header().uid()?;
+        Ok(Some(uid))
     }
 
     fn sym_link(&self) -> Option<PathBuf> {
@@ -66,12 +68,6 @@ impl<'a, R: Read> Entry for TarEntry<'a, R> {
             }
         }
         None
-    }
-}
-
-impl<'a, R: Read> Read for TarEntry<'a, R> {
-    fn read(&mut self, into: &mut [u8]) -> std::io::Result<usize> {
-        self.inner.read(into)
     }
 }
 
@@ -105,13 +101,6 @@ where
     pub fn entries(&mut self) -> std::io::Result<TarEntries<R>> {
         let inner = self.inner.entries()?;
         Ok(TarEntries { inner })
-    }
-
-    fn it(&mut self) {
-        for file in self.entries().unwrap() {
-            let file = file.unwrap();
-            
-        }
     }
 }
 

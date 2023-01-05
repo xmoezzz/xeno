@@ -1,0 +1,33 @@
+[package]
+description = "A 7z decompressor written in pure rust"
+edition = "2021"
+homepage = "https://github.com/dyz1990/sevenz-rust"
+keywords = ["7z", "7zip", "sevenz", "decompress"]
+license = "Apache-2.0"
+name = "sevenz-rust"
+readme = "README.md"
+repository = "https://github.com/dyz1990/sevenz-rust"
+version = "0.1.6"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+aes256 = ["aes", "cbc"]
+
+[dependencies]
+bit-set = "0.5.3"
+byteorder = "1.4"
+crc = "3.0.0"
+sha2 = {version="^0.9"}
+aes = {version = "0.8", optional=true}
+cbc = {version = "0.1", optional=true}
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3.60"
+
+[dev-dependencies]
+tempfile = "3.3.0"
