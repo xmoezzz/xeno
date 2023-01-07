@@ -5,6 +5,7 @@ mod tar;
 mod zip;
 mod seven_zip;
 mod rar;
+mod apple_xar;
 mod dmg;
 
 pub enum ReadFormat {

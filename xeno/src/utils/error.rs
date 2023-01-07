@@ -19,6 +19,8 @@ pub enum ArchiveError {
     SevenZipError(#[source] sevenz_rust::Error),
     #[error("rar error: {0}")]
     RarError(unrar::error::UnrarError<OpenArchive>),
+    #[error("xar error: {0}")]
+    XarError(#[source] apple_xar::Error),
 
     #[error("{0}")]
     GenericsError(&'static str),
