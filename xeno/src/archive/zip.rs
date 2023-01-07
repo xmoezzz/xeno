@@ -24,7 +24,6 @@ pub struct ZipEntries<'a, R: Read> {
     inner: &'a mut zip::ZipArchive<R>,
     current: usize,
     total: usize,
-    password: Option<String>,
     _mark: std::marker::PhantomData<&'a R>
 }
 
@@ -99,7 +98,6 @@ where
             inner: &mut self.inner,
             current: 0,
             total,
-            password: self.password.clone(),
             _mark: std::marker::PhantomData::<&R>
         })
     }

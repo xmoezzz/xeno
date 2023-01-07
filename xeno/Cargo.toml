@@ -15,6 +15,7 @@ apple-dmg = "0.2.0"
 # squashfs-ng = "0.1.2"
 tar = "0.4"
 zip = "0.6.3"
+unrar = "0.4.4"
 lzma-rs = "0.2"
 flate2 = "1.0.25"
 bzip2 = "0.4.3"
@@ -22,3 +23,4 @@ zstd = "0.12.1+zstd.1.5.2"
 sevenz-rust = { path = "../sevenz-rust", features = ["aes256"]}
 
 thiserror = "*"
+anyhow = { version = "*", features = ["backtrace"]}

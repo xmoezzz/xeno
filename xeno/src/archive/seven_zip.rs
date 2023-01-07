@@ -9,7 +9,6 @@ use crate::utils::error::ArchiveError;
 
 pub struct SevenZipArchive<R: Read + Seek> {
     inner: sevenz_rust::SevenZReader<R>,
-    password: String,
 }
 
 pub struct SevenZipEntry {
@@ -76,11 +75,12 @@ impl<R> SevenZipArchive<R>
 where
     for<'a> R: Read + Seek,
 {
-    fn open(rdr: R, size: u64, password: String) -> Result<impl Archive<R>, ArchiveError> {
+    fn open(rdr: R, size: u64, password: Option<String>) -> Result<impl Archive<R>, ArchiveError> {
+        let password = password.unwrap_or_default();
         let p = password.as_str();
         let inner = sevenz_rust::SevenZReader::<R>::new(rdr, size, p.into())
             .map_err(|e| { ArchiveError::SevenZipError(e) })?;
-        let arc = SevenZipArchive { inner, password };
+        let arc = SevenZipArchive { inner };
         Ok(arc)
     }
 }

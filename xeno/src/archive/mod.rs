@@ -4,6 +4,7 @@ use crate::utils::error::ArchiveError;
 mod tar;
 mod zip;
 mod seven_zip;
+mod rar;
 mod dmg;
 
 pub enum ReadFormat {

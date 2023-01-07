@@ -4,6 +4,8 @@ use std::{
 };
 
 use thiserror::Error;
+use unrar::archive::OpenArchive;
+
 
 #[derive(Debug, Error)]
 pub enum ArchiveError {
@@ -15,4 +17,15 @@ pub enum ArchiveError {
     Encrypted,
     #[error("7zip error: {0}")]
     SevenZipError(#[source] sevenz_rust::Error),
+    #[error("rar error: {0}")]
+    RarError(unrar::error::UnrarError<OpenArchive>),
+
+    #[error("{0}")]
+    GenericsError(&'static str),
+
+    #[error("{0}")]
+    GenericsError2(String),
+
+    #[error("{0}")]
+    GenericsError3(#[from] anyhow::Error),
 }
