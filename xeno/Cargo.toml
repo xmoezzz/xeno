@@ -14,6 +14,7 @@ readme = "README.md"
 apple-dmg = "0.2.0"
 # squashfs-ng = "0.1.2"
 apple-xar = "0.13.0"
+cab = "0.4.1"
 tar = "0.4"
 zip = "0.6.3"
 unrar = "0.4.4"
@@ -25,3 +26,4 @@ sevenz-rust = { path = "../sevenz-rust", features = ["aes256"]}
 
 thiserror = "*"
 anyhow = { version = "*", features = ["backtrace"]}
+
