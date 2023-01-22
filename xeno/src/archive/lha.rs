@@ -125,6 +125,11 @@ where
                 break;
             }
         }
+
+        if !failures.is_empty() {
+            return Err(ArchiveError::ExtractFailed { sources: failures });
+        }
+        
         Ok(())
     }
 

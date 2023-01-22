@@ -27,6 +27,8 @@ pub enum ArchiveError {
     XarError(#[source] apple_xar::Error),
     #[error("zip error: {0}")]
     ZipError(#[source] zip::result::ZipError),
+    #[error("squashfs error: {0}")]
+    SquashfsError(#[source] backhand::error::SquashfsError),
 
     #[error("{0}")]
     GenericsError(&'static str),

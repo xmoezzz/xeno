@@ -112,7 +112,6 @@ impl Iterator for CabEntries {
     }
 }
 
-impl<R> CabArchive<R> where R: Read + Seek {}
 
 impl<R> CabArchive<R>
 where
