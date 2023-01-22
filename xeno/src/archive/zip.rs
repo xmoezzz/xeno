@@ -82,9 +82,7 @@ where
 
         let entry = match &self.password {
             Some(password) => match self.inner.by_index_decrypt(self.current, password) {
-                Ok(result) => {
-                    result.ok()
-                },
+                Ok(result) => result.ok(),
                 _ => None,
             },
             _ => self.inner.by_index(self.current).ok(),
@@ -108,7 +106,6 @@ where
     }
 }
 
-
 impl<R> ZipArchive<R>
 where
     R: Read + Seek,
@@ -128,27 +125,34 @@ where
         self.inner.extract(to).map_err(ArchiveError::ZipError)
     }
 
-    pub fn unpack_file(&mut self, entry: &ZipEntry, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
-        let mut reader = self.inner.by_index(entry.index)
+    pub fn unpack_file(
+        &mut self,
+        entry: &ZipEntry,
+        to: impl AsRef<Path>,
+    ) -> Result<(), ArchiveError> {
+        let mut reader = self
+            .inner
+            .by_index(entry.index)
             .map_err(ArchiveError::ZipError)?;
         let mut writer = std::fs::File::create(to)?;
-        let _ = std::io::copy(&mut reader, &mut writer)
-            .map_err(ArchiveError::Io)?;
+        let _ = std::io::copy(&mut reader, &mut writer).map_err(ArchiveError::Io)?;
         Ok(())
     }
 
-    pub fn create_with_path(path: impl AsRef<Path>, password: Option<Vec<u8>>) -> Result<ZipArchive<impl Read + Seek>, ArchiveError> {
+    pub fn create_with_path(
+        path: impl AsRef<Path>,
+        password: Option<Vec<u8>>,
+    ) -> Result<ZipArchive<impl Read + Seek>, ArchiveError> {
         let reader = std::fs::File::open(path)?;
         Self::create_with_reader(reader, password)
     }
 
-    pub fn create_with_reader(rdr: impl Read + Seek, password: Option<Vec<u8>>) -> Result<ZipArchive<impl Read + Seek>, ArchiveError> {
-        let inner = zip::ZipArchive::new(rdr)
-            .map_err(ArchiveError::ZipError)?;
-        let archive = ZipArchive {
-            inner,
-            password
-        };
+    pub fn create_with_reader(
+        rdr: impl Read + Seek,
+        password: Option<Vec<u8>>,
+    ) -> Result<ZipArchive<impl Read + Seek>, ArchiveError> {
+        let inner = zip::ZipArchive::new(rdr).map_err(ArchiveError::ZipError)?;
+        let archive = ZipArchive { inner, password };
         Ok(archive)
     }
 }
