@@ -1,6 +1,5 @@
 use std::{io::Read, path::PathBuf};
 
-use crate::utils::error::ArchiveError;
 mod tar;
 mod zip;
 mod cab;
@@ -9,6 +8,7 @@ mod seven_zip;
 mod rar;
 mod apple_xar;
 mod dmg;
+mod lha;
 
 pub enum ReadFormat {
     SevenZip,

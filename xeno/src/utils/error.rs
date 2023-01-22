@@ -37,6 +37,9 @@ pub enum ArchiveError {
     #[error("{0}")]
     GenericsError3(#[from] anyhow::Error),
 
+    #[error("{0}")]
+    GenericsError4(#[from] &'static dyn std::error::Error),
+
     #[error("Some or all extractions failed: {sources:?}")]
     ExtractFailed { sources: Vec<ArchiveError> },
 }

@@ -1,6 +1,6 @@
 [package]
 name = "xeno-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 homepage = "https://github.com/xmoezzz/xeno"
@@ -24,10 +24,11 @@ flate2 = "1.0.25"
 bzip2 = "0.4.3"
 zstd = "0.12.1+zstd.1.5.2"
 sevenz-rust = { version = "0.2.0", features = ["aes256"]}
+delharc = "0.4.0"
 
-thiserror = "*"
-anyhow = { version = "*", features = ["backtrace"]}
+thiserror = "1.0.38"
+anyhow = { version = "1.0.68", features = ["backtrace"]}
 memmap = "0.7.0"
 
 time = "0.3.17"
-
+log = "0.4.17"
