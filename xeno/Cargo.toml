@@ -14,6 +14,7 @@ readme = "README.md"
 apple-dmg = "0.2.0"
 # squashfs-ng = "0.1.2"
 apple-xar = "0.13.0"
+cpio_reader = "0.1.1"
 cab = "0.4.1"
 tar = "0.4"
 zip = "0.6.3"
@@ -22,8 +23,11 @@ lzma-rs = "0.2"
 flate2 = "1.0.25"
 bzip2 = "0.4.3"
 zstd = "0.12.1+zstd.1.5.2"
-sevenz-rust = { path = "../sevenz-rust", features = ["aes256"]}
+sevenz-rust = { version = "0.2.0", features = ["aes256"]}
 
 thiserror = "*"
 anyhow = { version = "*", features = ["backtrace"]}
+memmap = "0.7.0"
+
+time = "0.3.17"
 

@@ -1,36 +1,67 @@
-use std::io::Seek;
-use std::io::{BufReader, Read};
-use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::path::{PathBuf, Path};
 
 use unrar::archive::OpenArchive;
 
-use crate::archive::{Archive, Entry, FileType};
+use crate::archive::{Entry, FileType};
 use crate::utils::error::ArchiveError;
 
-pub struct RarArchive<'a, R: Read + Seek> {
+pub struct RarArchive {
     password: Option<String>,
     filepath: String,
-    _mark: std::marker::PhantomData<&'a R>,
 }
 
-pub struct RarEntry<'a, R: Read + Seek> {
+pub struct RarEntry {
     is_dir: bool,
     is_file: bool,
     size: u64,
     path: PathBuf,
-    _mark: std::marker::PhantomData<&'a R>,
 }
 
-pub struct RarEntries<'a, R: Read> {
+
+impl Entry for RarEntry {
+    fn file_type(&self) -> FileType {
+        if self.is_dir {
+            return FileType::Directory;
+        }
+        if self.is_file {
+            return FileType::RegularFile;
+        }
+
+        FileType::Other
+    }
+
+    fn hand_link(&self) -> Option<PathBuf> {
+        None
+    }
+
+    fn path_name(&self) -> std::io::Result<PathBuf> {
+        Ok(self.path.clone())
+    }
+
+    fn gid(&self) -> std::io::Result<Option<u64>> {
+        Ok(None)
+    }
+
+    fn uid(&self) -> std::io::Result<Option<u64>> {
+        Ok(None)
+    }
+
+    fn size(&self) -> u64 {
+        self.size
+    }
+
+    fn sym_link(&self) -> Option<PathBuf> {
+        None
+    }
+}
+
+
+pub struct RarEntries {
     inner: OpenArchive,
-    _mark: std::marker::PhantomData<&'a R>,
 }
 
-impl<'a, R: Read + Seek> Iterator for RarEntries<'a, R> {
-    type Item = zip::result::ZipResult<RarEntry<'a, R>>;
-
-    fn next(&mut self) -> Option<zip::result::ZipResult<RarEntry<'a, R>>> {
+impl RarEntries {
+    fn next(&mut self) -> Option<zip::result::ZipResult<RarEntry>> {
         let entry = self.inner.next();
         if let Some(Ok(entry)) = entry {
             let rar_entry = RarEntry {
@@ -38,7 +69,6 @@ impl<'a, R: Read + Seek> Iterator for RarEntries<'a, R> {
                 is_file: entry.is_file(),
                 size: entry.unpacked_size as u64,
                 path: PathBuf::from(entry.filename),
-                _mark: std::marker::PhantomData::<&'a R>,
             };
             return Some(Ok(rar_entry));
         }
@@ -47,21 +77,27 @@ impl<'a, R: Read + Seek> Iterator for RarEntries<'a, R> {
     }
 }
 
-impl<'a, R> Archive<R> for RarArchive<'a, R> where R: Read + Seek {}
-
-impl<'a, R> RarArchive<'a, R>
-where
-    R: Read + Seek,
+impl RarArchive
 {
-    pub fn entries(&mut self) -> Result<RarEntries<R>, ArchiveError> {
+    pub fn entries(&mut self) -> Result<RarEntries, ArchiveError> {
         let archive = self.open_archive();
         let lister = archive.list().map_err(ArchiveError::RarError);
 
         let lister = lister?;
         Ok(RarEntries {
             inner: lister,
-            _mark: std::marker::PhantomData::<&R>,
         })
+    }
+
+    pub fn unpack_all(&mut self, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
+        let archive = self.open_archive();
+        let to = to.as_ref().to_path_buf().into_os_string().into_string()
+            .map_err(ArchiveError::OsString)?;
+        let mut unpacker = archive.extract_to(to)
+            .map_err(ArchiveError::RarError)?;
+        let _ = unpacker.process()
+            .map_err(ArchiveError::RarError2)?;
+        Ok(())
     }
 
     fn open_archive(&self) -> unrar::Archive {
@@ -71,5 +107,15 @@ where
         };
 
         archive
+    }
+
+    pub fn create_with_path(path: impl AsRef<Path>, password: Option<String>) -> Result<RarArchive, ArchiveError> {
+        let archive = RarArchive {
+            filepath: path.as_ref().to_path_buf().into_os_string().into_string()
+                .map_err(ArchiveError::OsString)?,
+            password: password,
+        };
+
+        Ok(archive)
     }
 }

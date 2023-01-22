@@ -4,6 +4,7 @@ use crate::utils::error::ArchiveError;
 mod tar;
 mod zip;
 mod cab;
+mod cpio;
 mod seven_zip;
 mod rar;
 mod apple_xar;
@@ -116,6 +117,3 @@ pub trait Entry {
     fn sym_link(&self) -> Option<PathBuf>;
 }
 
-pub trait Archive<R: Read> {
-    
-}
