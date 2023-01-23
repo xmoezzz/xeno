@@ -10,6 +10,7 @@ mod apple_xar;
 mod dmg;
 mod lha;
 mod squashfs;
+mod ntfs;
 
 pub enum ReadFormat {
     SevenZip,

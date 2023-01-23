@@ -1,6 +1,6 @@
 use std::{
     path::PathBuf,
-    process::{ExitStatus, Output}, ffi::OsString,
+    ffi::OsString,
 };
 
 use thiserror::Error;
@@ -29,6 +29,8 @@ pub enum ArchiveError {
     ZipError(#[source] zip::result::ZipError),
     #[error("squashfs error: {0}")]
     SquashfsError(#[source] backhand::error::SquashfsError),
+    #[error("ntfs error: {0}")]
+    NtfsError(#[source] ntfs::NtfsError),
 
     #[error("{0}")]
     GenericsError(&'static str),
