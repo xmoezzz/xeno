@@ -31,6 +31,8 @@ pub enum ArchiveError {
     SquashfsError(#[source] backhand::error::SquashfsError),
     #[error("ntfs error: {0}")]
     NtfsError(#[source] ntfs::NtfsError),
+    #[error("lzma error: {0}")]
+    LzmaError(#[source] lzma_rs::error::Error),
 
     #[error("{0}")]
     GenericsError(&'static str),

@@ -2,7 +2,7 @@ use std::io::{Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
 
-use fatfs::{DateTime, Date, FileAttributes};
+use fatfs::{Date, DateTime, FileAttributes};
 
 use crate::archive::{Entry, FileType};
 use crate::utils::error::ArchiveError;
@@ -61,7 +61,6 @@ impl Entry for FatEntry {
     }
 }
 
-
 impl FatEntry {
     pub fn fat_readonly(&self) -> bool {
         (self.attr & FileAttributes::READ_ONLY).bits() == 1
@@ -82,7 +81,7 @@ impl FatEntry {
     pub fn fat_directory(&self) -> bool {
         (self.attr & FileAttributes::DIRECTORY).bits() == 1
     }
-    
+
     pub fn fat_archive(&self) -> bool {
         (self.attr & FileAttributes::ARCHIVE).bits() == 1
     }
@@ -182,16 +181,14 @@ where
 
                     writer.write(&buf[..bytes_read])?;
                 }
-            }
-            else if entry.is_dir() {
+            } else if entry.is_dir() {
                 let path = entry.file_name();
                 let dest = to.join(path);
                 if let Err(e) = std::fs::create_dir_all(dest) {
                     let err = ArchiveError::Io(e);
                     failures.push(err);
                 }
-            }
-            else {
+            } else {
                 log::debug!("Unrecognized entry: {:?}", &entry);
             }
         }
@@ -216,8 +213,7 @@ where
             return Ok(());
         }
 
-        let mut entry = root_dir.open_file(&entry.path)
-            .map_err(ArchiveError::Io)?;
+        let mut entry = root_dir.open_file(&entry.path).map_err(ArchiveError::Io)?;
 
         let mut writer = std::fs::File::create(to)?;
         let mut buf = [0u8; 4096];
