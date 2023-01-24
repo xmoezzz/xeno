@@ -28,6 +28,7 @@ delharc = "0.4.0"
 ext4 = "0.9.0"
 backhand = "0.6.0"
 ntfs = "0.2.0"
+fatfs = "0.3.6"
 
 thiserror = "1.0.38"
 anyhow = { version = "1.0.68", features = ["backtrace"]}

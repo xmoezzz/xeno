@@ -151,7 +151,9 @@ where
                 Ok(entry) => {
                     let to_path = to.as_ref().to_path_buf();
                     let path = to_path.join(&entry.filename);
-                    self.unpack_file(&entry, path);
+                    if let Err(e) = self.unpack_file(&entry, path) {
+                        failures.push(e);
+                    }
                 },
                 Err(e) => {
                     failures.push(e);

@@ -111,7 +111,7 @@ where
         }
 
         let mut failures = vec![];
-        self.inner.for_each_entries(|entry, reader| {
+        let _result = self.inner.for_each_entries(|entry, reader| {
             if !entry.is_directory() {
                 let path = entry.name();
                 let dest = to.join(path);
@@ -142,12 +142,14 @@ where
             return Err(ArchiveError::ExtractFailed { sources: failures });
         }
 
+        
+
         Ok(())
     }
 
     pub fn entries(&mut self) -> std::io::Result<ZipEntries> {
         let mut archive_entries = vec![];
-        self.inner.for_each_entries(|entry, _| {
+        let _result = self.inner.for_each_entries(|entry, _| {
             archive_entries.push(entry.to_owned());
             Ok(true)
         });

@@ -315,6 +315,11 @@ where
                 }
             }
         }
+
+        if !failures.is_empty() {
+            let err = ArchiveError::ExtractFailed { sources: failures };
+            return Err(err);
+        }
         Ok(())
     }
 

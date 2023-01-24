@@ -11,6 +11,7 @@ mod dmg;
 mod lha;
 mod squashfs;
 mod ntfs;
+mod fat;
 
 pub enum ReadFormat {
     SevenZip,
