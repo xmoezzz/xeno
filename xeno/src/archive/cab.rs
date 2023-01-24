@@ -1,4 +1,4 @@
-use std::io::{Seek, Read, BufReader};
+use std::io::{BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
 
 use cab::Cabinet;
@@ -112,7 +112,6 @@ impl Iterator for CabEntries {
     }
 }
 
-
 impl<R> CabArchive<R>
 where
     R: Read + Seek,
@@ -154,7 +153,7 @@ where
                     if let Err(e) = self.unpack_file(&entry, path) {
                         failures.push(e);
                     }
-                },
+                }
                 Err(e) => {
                     failures.push(e);
                 }
@@ -168,28 +167,31 @@ where
         Ok(())
     }
 
-    pub fn unpack_file(&mut self, entry: &CabEntry, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
+    pub fn unpack_file(
+        &mut self,
+        entry: &CabEntry,
+        to: impl AsRef<Path>,
+    ) -> Result<(), ArchiveError> {
         let mut reader = self.inner.read_file(&entry.filename)?;
         let mut writer = std::fs::File::create(to)?;
         let _ = std::io::copy(&mut reader, &mut writer)?;
         Ok(())
     }
 
-    pub fn create_with_reader(rdr: impl Read + Seek) -> Result<CabArchive<impl Read + Seek>, ArchiveError> {
-        let reader = cab::Cabinet::new(rdr)
-            .map_err(ArchiveError::Io)?;
-        
-        let archive = CabArchive {
-            inner: reader,
-        };
+    pub fn create_with_reader(
+        rdr: impl Read + Seek,
+    ) -> Result<CabArchive<impl Read + Seek>, ArchiveError> {
+        let reader = cab::Cabinet::new(rdr).map_err(ArchiveError::Io)?;
+
+        let archive = CabArchive { inner: reader };
 
         Ok(archive)
     }
 
-    pub fn create_with_path(path: impl AsRef<Path>) -> Result<CabArchive<impl Read + Seek>, ArchiveError> {
+    pub fn create_with_path(
+        path: impl AsRef<Path>,
+    ) -> Result<CabArchive<impl Read + Seek>, ArchiveError> {
         let rdr = BufReader::new(std::fs::File::open(path)?);
         Self::create_with_reader(rdr)
     }
 }
-
-

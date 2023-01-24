@@ -1,17 +1,17 @@
 use std::{io::Read, path::PathBuf};
 
-mod tar;
-mod zip;
+mod apple_xar;
 mod cab;
 mod cpio;
-mod seven_zip;
-mod rar;
-mod apple_xar;
 mod dmg;
-mod lha;
-mod squashfs;
-mod ntfs;
 mod fat;
+mod lha;
+mod ntfs;
+mod rar;
+mod seven_zip;
+mod squashfs;
+mod tar;
+mod zip;
 
 pub enum ReadFormat {
     SevenZip,
@@ -43,9 +43,8 @@ pub enum FileType {
     NamedPipe,
     Mount,
     RegularFile,
-    Other
+    Other,
 }
-
 
 pub enum ExtractOption {
     // The user and group IDs should be set on the restored file. By default, the user and group
@@ -111,7 +110,7 @@ pub enum ExtractOption {
 }
 
 pub trait Entry {
-    fn file_type(&self) -> FileType; 
+    fn file_type(&self) -> FileType;
     fn hand_link(&self) -> Option<PathBuf>;
     fn path_name(&self) -> std::io::Result<PathBuf>;
     fn gid(&self) -> std::io::Result<Option<u64>>;
@@ -119,4 +118,3 @@ pub trait Entry {
     fn size(&self) -> u64;
     fn sym_link(&self) -> Option<PathBuf>;
 }
-

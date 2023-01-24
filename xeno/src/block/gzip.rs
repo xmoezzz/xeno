@@ -1,4 +1,4 @@
-use std::io::{Read, BufReader, Write};
+use std::io::{BufReader, Read, Write};
 use std::path::Path;
 
 use flate2::read::GzDecoder;
@@ -9,7 +9,7 @@ pub struct GzipBlock<R: Read> {
     inner: GzDecoder<R>,
 }
 
-impl<R> GzipBlock<R> 
+impl<R> GzipBlock<R>
 where
     R: Read,
 {
@@ -37,10 +37,8 @@ where
 
     pub fn create_with_reader(rdr: impl Read) -> Result<GzipBlock<impl Read>, ArchiveError> {
         let reader = GzDecoder::new(rdr);
-        
-        let block = GzipBlock {
-            inner: reader,
-        };
+
+        let block = GzipBlock { inner: reader };
 
         Ok(block)
     }

@@ -1,4 +1,4 @@
-use std::io::{Read, BufReader, Write};
+use std::io::{BufReader, Read, Write};
 use std::path::Path;
 
 use lz4::Decoder;
@@ -9,7 +9,7 @@ pub struct Lz4Block<R: Read> {
     inner: Decoder<R>,
 }
 
-impl<R> Lz4Block<R> 
+impl<R> Lz4Block<R>
 where
     R: Read,
 {
@@ -22,10 +22,8 @@ where
 
     pub fn create_with_reader(rdr: impl Read) -> Result<Lz4Block<impl Read>, ArchiveError> {
         let reader = Decoder::new(rdr)?;
-        
-        let block = Lz4Block {
-            inner: reader,
-        };
+
+        let block = Lz4Block { inner: reader };
 
         Ok(block)
     }

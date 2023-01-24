@@ -53,8 +53,7 @@ pub struct LhaEntries {
     current: usize,
 }
 
-impl Iterator for LhaEntries
-{
+impl Iterator for LhaEntries {
     type Item = Result<LhaEntry, ArchiveError>;
 
     fn next(&mut self) -> Option<Result<LhaEntry, ArchiveError>> {
@@ -81,8 +80,12 @@ where
                 size: header.original_size,
             };
             lha_entries.push(entry);
-    
-            if !self.inner.next_file().map_err(|e| ArchiveError::GenericsError2(format!("{:?}", e)))? {
+
+            if !self
+                .inner
+                .next_file()
+                .map_err(|e| ArchiveError::GenericsError2(format!("{:?}", e)))?
+            {
                 break;
             }
         }
@@ -113,15 +116,17 @@ where
                 if let Err(e) = extraction_status {
                     failures.push(ArchiveError::Io(e));
                 }
-            }
-            else if header.is_directory() {
+            } else if header.is_directory() {
                 log::debug!("skipping: an empty directory");
-            }
-            else {
+            } else {
                 eprintln!("skipping: has unsupported compression method");
             }
-    
-            if !self.inner.next_file().map_err(|e| ArchiveError::GenericsError2(format!("{:?}", e)))? {
+
+            if !self
+                .inner
+                .next_file()
+                .map_err(|e| ArchiveError::GenericsError2(format!("{:?}", e)))?
+            {
                 break;
             }
         }
@@ -129,11 +134,13 @@ where
         if !failures.is_empty() {
             return Err(ArchiveError::ExtractFailed { sources: failures });
         }
-        
+
         Ok(())
     }
 
-    pub fn create_with_path(path: impl AsRef<Path>) -> Result<LhaArchive<impl Read + Seek>, ArchiveError> {
+    pub fn create_with_path(
+        path: impl AsRef<Path>,
+    ) -> Result<LhaArchive<impl Read + Seek>, ArchiveError> {
         let reader = std::fs::File::open(path)?;
         Self::create_with_reader(reader)
     }
@@ -141,9 +148,8 @@ where
     pub fn create_with_reader(
         rdr: impl Read + Seek,
     ) -> Result<LhaArchive<impl Read + Seek>, ArchiveError> {
-        let inner = LhaDecodeReader::new(rdr).map_err(|e| {
-            ArchiveError::GenericsError2(format!("{:?}", &e))
-        })?;
+        let inner = LhaDecodeReader::new(rdr)
+            .map_err(|e| ArchiveError::GenericsError2(format!("{:?}", &e)))?;
         let archive = LhaArchive { inner };
         Ok(archive)
     }

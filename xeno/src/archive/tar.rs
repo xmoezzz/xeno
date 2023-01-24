@@ -1,34 +1,33 @@
 use core::arch;
-use std::io::{Seek, Read};
-use std::path::{PathBuf, Path};
+use std::io::{Read, Seek};
+use std::path::{Path, PathBuf};
 
 use bzip2::read::BzDecoder;
 use lzma_rs::lzma_decompress;
 use tar::Archive as TarArchiveInner;
 use zstd::Decoder as ZstdDecoder;
 
-use crate::utils::error::ArchiveError;
 use crate::archive::{Entry, FileType};
-
+use crate::utils::error::ArchiveError;
 
 pub struct TarArchive<R: Read> {
-    inner: TarArchiveInner<R>
+    inner: TarArchiveInner<R>,
 }
 
 pub struct TarGzArchive<R: Read> {
-    inner: TarArchiveInner<R>
+    inner: TarArchiveInner<R>,
 }
 
 pub struct TarBz2Archive<R: Read> {
-    inner: TarArchiveInner<R>
+    inner: TarArchiveInner<R>,
 }
 
 pub struct TarZstdArchive<R: Read> {
-    inner: TarArchiveInner<R>
+    inner: TarArchiveInner<R>,
 }
 
 pub struct TarEntry<'a, R: Read> {
-    inner: tar::Entry<'a, R>
+    inner: tar::Entry<'a, R>,
 }
 
 impl<'a, R: Read> Entry for TarEntry<'a, R> {
@@ -41,7 +40,7 @@ impl<'a, R: Read> Entry for TarEntry<'a, R> {
             tar::EntryType::Char => FileType::CharacterDevice,
             tar::EntryType::Directory => FileType::Directory,
             tar::EntryType::Fifo => FileType::NamedPipe,
-            _ => FileType::Other
+            _ => FileType::Other,
         }
     }
 
@@ -89,24 +88,24 @@ impl<'a, R: Read> Read for TarEntry<'a, R> {
     }
 }
 
-
 pub struct TarEntries<'a, R: Read> {
-    inner: tar::Entries<'a, R>
+    inner: tar::Entries<'a, R>,
 }
-
 
 impl<'a, R: Read> Iterator for TarEntries<'a, R> {
     type Item = Result<TarEntry<'a, R>, ArchiveError>;
 
     fn next(&mut self) -> Option<Result<TarEntry<'a, R>, ArchiveError>> {
-        self.inner
-            .next()
-            .map(|result| result.map(|e| TarEntry { inner: e }).map_err(ArchiveError::Io))
+        self.inner.next().map(|result| {
+            result
+                .map(|e| TarEntry { inner: e })
+                .map_err(ArchiveError::Io)
+        })
     }
 }
 
 impl<R> TarArchive<R>
-where 
+where
     R: Read,
 {
     pub fn entries(&mut self) -> std::io::Result<TarEntries<R>> {
@@ -118,7 +117,11 @@ where
         self.inner.unpack(to).map_err(ArchiveError::Io)
     }
 
-    pub fn unpack_file(&mut self, entry: &mut TarEntry<R>, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
+    pub fn unpack_file(
+        &mut self,
+        entry: &mut TarEntry<R>,
+        to: impl AsRef<Path>,
+    ) -> Result<(), ArchiveError> {
         let mut writer = std::fs::File::create(to)?;
         let _ = std::io::copy(&mut entry.inner, &mut writer)?;
         Ok(())
@@ -126,7 +129,7 @@ where
 
     pub fn create_with_reader(reader: impl Read) -> Result<TarArchive<impl Read>, ArchiveError> {
         let archive = tar::Archive::new(reader);
-        Ok(TarArchive{inner: archive})
+        Ok(TarArchive { inner: archive })
     }
 
     pub fn create_with_path(path: impl AsRef<Path>) -> Result<TarArchive<impl Read>, ArchiveError> {
@@ -135,9 +138,8 @@ where
     }
 }
 
-
 impl<R> TarGzArchive<R>
-where 
+where
     R: Read,
 {
     pub fn entries(&mut self) -> std::io::Result<TarEntries<R>> {
@@ -149,7 +151,11 @@ where
         self.inner.unpack(to).map_err(ArchiveError::Io)
     }
 
-    pub fn unpack_file(&mut self, entry: &mut TarEntry<R>, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
+    pub fn unpack_file(
+        &mut self,
+        entry: &mut TarEntry<R>,
+        to: impl AsRef<Path>,
+    ) -> Result<(), ArchiveError> {
         let mut writer = std::fs::File::create(to)?;
         let _ = std::io::copy(&mut entry.inner, &mut writer)?;
         Ok(())
@@ -158,18 +164,19 @@ where
     pub fn create_with_reader(reader: impl Read) -> Result<TarGzArchive<impl Read>, ArchiveError> {
         let reader = flate2::read::GzDecoder::new(reader);
         let archive = tar::Archive::new(reader);
-        Ok(TarGzArchive{inner: archive})
+        Ok(TarGzArchive { inner: archive })
     }
 
-    pub fn create_with_path(path: impl AsRef<Path>) -> Result<TarGzArchive<impl Read>, ArchiveError> {
+    pub fn create_with_path(
+        path: impl AsRef<Path>,
+    ) -> Result<TarGzArchive<impl Read>, ArchiveError> {
         let reader = std::fs::File::open(path)?;
         Self::create_with_reader(reader)
     }
 }
 
-
 impl<R> TarBz2Archive<R>
-where 
+where
     R: Read,
 {
     pub fn entries(&mut self) -> std::io::Result<TarEntries<R>> {
@@ -181,7 +188,11 @@ where
         self.inner.unpack(to).map_err(ArchiveError::Io)
     }
 
-    pub fn unpack_file(&mut self, entry: &mut TarEntry<R>, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
+    pub fn unpack_file(
+        &mut self,
+        entry: &mut TarEntry<R>,
+        to: impl AsRef<Path>,
+    ) -> Result<(), ArchiveError> {
         let mut writer = std::fs::File::create(to)?;
         let _ = std::io::copy(&mut entry.inner, &mut writer)?;
         Ok(())
@@ -190,18 +201,19 @@ where
     pub fn create_with_reader(reader: impl Read) -> Result<TarBz2Archive<impl Read>, ArchiveError> {
         let reader = BzDecoder::new(reader);
         let archive = tar::Archive::new(reader);
-        Ok(TarBz2Archive{inner: archive})
+        Ok(TarBz2Archive { inner: archive })
     }
 
-    pub fn create_with_path(path: impl AsRef<Path>) -> Result<TarBz2Archive<impl Read>, ArchiveError> {
+    pub fn create_with_path(
+        path: impl AsRef<Path>,
+    ) -> Result<TarBz2Archive<impl Read>, ArchiveError> {
         let reader = std::fs::File::open(path)?;
         Self::create_with_reader(reader)
     }
 }
 
-
 impl<R> TarZstdArchive<R>
-where 
+where
     R: Read,
 {
     pub fn entries(&mut self) -> std::io::Result<TarEntries<R>> {
@@ -213,22 +225,28 @@ where
         self.inner.unpack(to).map_err(ArchiveError::Io)
     }
 
-    pub fn unpack_file(&mut self, entry: &mut TarEntry<R>, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
+    pub fn unpack_file(
+        &mut self,
+        entry: &mut TarEntry<R>,
+        to: impl AsRef<Path>,
+    ) -> Result<(), ArchiveError> {
         let mut writer = std::fs::File::create(to)?;
         let _ = std::io::copy(&mut entry.inner, &mut writer)?;
         Ok(())
     }
 
-    pub fn create_with_reader(reader: impl Read) -> Result<TarZstdArchive<impl Read>, ArchiveError> {
+    pub fn create_with_reader(
+        reader: impl Read,
+    ) -> Result<TarZstdArchive<impl Read>, ArchiveError> {
         let reader = ZstdDecoder::new(reader)?;
         let archive = tar::Archive::new(reader);
-        Ok(TarZstdArchive{inner: archive})
+        Ok(TarZstdArchive { inner: archive })
     }
 
-    pub fn create_with_path(path: impl AsRef<Path>) -> Result<TarZstdArchive<impl Read>, ArchiveError> {
+    pub fn create_with_path(
+        path: impl AsRef<Path>,
+    ) -> Result<TarZstdArchive<impl Read>, ArchiveError> {
         let reader = std::fs::File::open(path)?;
         Self::create_with_reader(reader)
     }
 }
-
-

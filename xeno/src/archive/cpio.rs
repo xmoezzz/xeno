@@ -1,12 +1,12 @@
-use std::io::{Seek, Read, Write};
-use std::path::{PathBuf, Path};
+use std::io::{Read, Seek, Write};
+use std::path::{Path, PathBuf};
 use std::vec;
 
-use crate::archive::{ Entry, FileType};
+use crate::archive::{Entry, FileType};
 use crate::utils::error::ArchiveError;
 
-use time::PrimitiveDateTime;
 use cpio_reader::Mode;
+use time::PrimitiveDateTime;
 
 pub struct CpioArchive<'a, R: Read + Seek> {
     buffer: memmap::Mmap,
@@ -35,23 +35,17 @@ impl Entry for CpioEntry {
     fn file_type(&self) -> FileType {
         if self.mode.bits() & Mode::NAMED_PIPE_FIFO.bits() == 1 {
             return FileType::NamedPipe;
-        }
-        else if self.mode.bits() & Mode::CHARACTER_SPECIAL_DEVICE.bits() == 1 {
+        } else if self.mode.bits() & Mode::CHARACTER_SPECIAL_DEVICE.bits() == 1 {
             return FileType::CharacterDevice;
-        }
-        else if self.mode.bits() & Mode::DIRECTORY.bits() == 1 {
+        } else if self.mode.bits() & Mode::DIRECTORY.bits() == 1 {
             return FileType::Directory;
-        }
-        else if self.mode.bits() & Mode::BLOCK_SPECIAL_DEVICE.bits() == 1 {
+        } else if self.mode.bits() & Mode::BLOCK_SPECIAL_DEVICE.bits() == 1 {
             return FileType::BlockDevice;
-        }
-        else if self.mode.bits() & Mode::REGULAR_FILE.bits() == 1 {
+        } else if self.mode.bits() & Mode::REGULAR_FILE.bits() == 1 {
             return FileType::RegularFile;
-        }
-        else if self.mode.bits() & Mode::SYMBOLIK_LINK.bits() == 1 {
+        } else if self.mode.bits() & Mode::SYMBOLIK_LINK.bits() == 1 {
             return FileType::SymbolicLink;
-        }
-        else if self.mode.bits() & Mode::SOCKET.bits() == 1 {
+        } else if self.mode.bits() & Mode::SOCKET.bits() == 1 {
             return FileType::Socket;
         }
 
@@ -130,7 +124,6 @@ pub struct CpioEntries {
     entries: Vec<CpioEntry>,
 }
 
-
 impl<'a, R> CpioArchive<'a, R>
 where
     R: Read + Seek,
@@ -171,13 +164,14 @@ where
         let mut failures = vec![];
         for entry in cpio_reader::iter_files(&self.buffer) {
             let dest = to.join(entry.name());
-            match std::fs::File::create(dest).and_then(|mut writer| writer.write_all(entry.file())) {
+            match std::fs::File::create(dest).and_then(|mut writer| writer.write_all(entry.file()))
+            {
                 Err(e) => {
                     let err = ArchiveError::Io(e);
                     failures.push(err);
                     continue;
-                },
-                _ => {},
+                }
+                _ => {}
             };
         }
 
@@ -187,7 +181,7 @@ where
     pub fn create_with_path(path: impl AsRef<Path>) -> Result<CpioArchive<'a, R>, ArchiveError> {
         let file = std::fs::File::open(path)?;
         let buffer = unsafe { memmap::MmapOptions::new().map(&file).unwrap() };
-        
+
         let archive = CpioArchive {
             buffer,
             _mark: std::marker::PhantomData::<&'a R>,
@@ -196,6 +190,3 @@ where
         Ok(archive)
     }
 }
-
-
-

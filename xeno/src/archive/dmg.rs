@@ -8,7 +8,6 @@
 //     password: Option<String>
 // }
 
-
 // pub struct DmgEntries<'a, R: Read + Seek> {
 //     dmg_inner: Arc<&'a mut DmgReader<R>>,
 //     current_partition: usize,
@@ -25,24 +24,23 @@
 //         self.dmg_inner.plist().partitions().len();
 //         let partition = self.dmg_inner.plist().partitions().get(self.current_partition);
 //         if let Some(partition) = partition {
-            
+
 //         }
 
 //         let entry = self.inner.by_index(self.current)
 //             .map(|result|  ZipEntry {
-//                 index: self.current, 
-//                 is_dir: result.is_dir(), 
-//                 is_file: result.is_file(), 
+//                 index: self.current,
+//                 is_dir: result.is_dir(),
+//                 is_file: result.is_file(),
 //                 size: result.size(),
 //                 path: PathBuf::from(result.name()),
 //                 zip_inner: self.inner.clone(),
 //                 _mark: std::marker::PhantomData::<&'a R> } );
-        
+
 //         self.current += 1;
 //         Some(entry)
 //     }
 // }
-
 
 // impl<R> DmgArchive<R>
 // where
@@ -59,5 +57,3 @@
 //         })
 //     }
 // }
-
-

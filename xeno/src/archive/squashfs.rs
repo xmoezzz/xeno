@@ -1,15 +1,13 @@
-use std::io::{Seek, Read};
-use std::path::{PathBuf, Path};
+use std::io::{Read, Seek};
+use std::path::{Path, PathBuf};
 
 use backhand::filesystem::{
-    Filesystem,
-    InnerNode, SquashfsBlockDevice, SquashfsCharacterDevice, SquashfsFile, SquashfsPath,
-    SquashfsSymlink,
+    Filesystem, InnerNode, SquashfsBlockDevice, SquashfsCharacterDevice, SquashfsFile,
+    SquashfsPath, SquashfsSymlink,
 };
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
-
 
 use crate::archive::{Entry, FileType};
 use crate::utils::error::ArchiveError;
@@ -44,9 +42,11 @@ impl<'a> Iterator for SquashFSEntries<'a> {
 
 impl SquashFSArchive {
     pub fn entries(&mut self) -> Result<SquashFSEntries, ArchiveError> {
-        let mut entries = self.inner.nodes
+        let mut entries = self
+            .inner
+            .nodes
             .iter()
-            .map(|n| SquashFSEntry {inner: n})
+            .map(|n| SquashFSEntry { inner: n })
             .collect::<Vec<_>>();
 
         Ok(SquashFSEntries {
@@ -73,7 +73,7 @@ impl SquashFSArchive {
                         let err = ArchiveError::Io(e);
                         failures.push(err);
                     }
-                },
+                }
                 InnerNode::Symlink(SquashfsSymlink { link, .. }) => {
                     let path: PathBuf = path.iter().skip(1).collect();
                     log::debug!("symlink {} {}", path.display(), link);
@@ -99,7 +99,7 @@ impl SquashFSArchive {
                             }
                         }
                     }
-                },
+                }
                 InnerNode::Path(SquashfsPath { header, .. }) => {
                     let path: PathBuf = path.iter().skip(1).collect();
                     let path = to.join(&path);
@@ -114,29 +114,33 @@ impl SquashFSArchive {
                             }
                         }
                     }
-                },
+                }
                 InnerNode::CharacterDevice(SquashfsCharacterDevice {
                     header: _,
                     device_number: _,
                 }) => {
                     log::info!("[-] character device not supported");
-                },
+                }
                 InnerNode::BlockDevice(SquashfsBlockDevice {
                     header: _,
                     device_number: _,
                 }) => {
                     log::info!("[-] block device not supported");
-                },
+                }
             }
         }
-        
+
         if !failures.is_empty() {
             return Err(ArchiveError::ExtractFailed { sources: failures });
         }
         Ok(())
     }
 
-    pub fn unpack_file(&mut self, entry: &SquashFSEntry, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
+    pub fn unpack_file(
+        &mut self,
+        entry: &SquashFSEntry,
+        to: impl AsRef<Path>,
+    ) -> Result<(), ArchiveError> {
         let to = to.as_ref();
         let node = entry.inner;
         let path = &node.path;
@@ -149,7 +153,7 @@ impl SquashFSArchive {
                     let err = ArchiveError::Io(e);
                     return Err(err);
                 }
-            },
+            }
             InnerNode::Symlink(SquashfsSymlink { link, .. }) => {
                 let path: PathBuf = path.iter().skip(1).collect();
                 log::debug!("symlink {} {}", path.display(), link);
@@ -175,7 +179,7 @@ impl SquashFSArchive {
                         }
                     }
                 }
-            },
+            }
             InnerNode::Path(SquashfsPath { header, .. }) => {
                 let path: PathBuf = path.iter().skip(1).collect();
                 let path = to.join(&path);
@@ -190,30 +194,29 @@ impl SquashFSArchive {
                         }
                     }
                 }
-            },
+            }
             InnerNode::CharacterDevice(SquashfsCharacterDevice {
                 header: _,
                 device_number: _,
             }) => {
                 log::info!("[-] character device not supported");
-            },
+            }
             InnerNode::BlockDevice(SquashfsBlockDevice {
                 header: _,
                 device_number: _,
             }) => {
                 log::info!("[-] block device not supported");
-            },
+            }
         }
         Ok(())
     }
 
-    pub fn create_with_reader(rdr: impl Read + Seek + 'static) -> Result<SquashFSArchive, ArchiveError> {
-        let inner = Filesystem::from_reader(rdr)
-            .map_err(ArchiveError::SquashfsError)?;
-        
-        let archive = SquashFSArchive {
-            inner,
-        };
+    pub fn create_with_reader(
+        rdr: impl Read + Seek + 'static,
+    ) -> Result<SquashFSArchive, ArchiveError> {
+        let inner = Filesystem::from_reader(rdr).map_err(ArchiveError::SquashfsError)?;
+
+        let archive = SquashFSArchive { inner };
 
         Ok(archive)
     }
@@ -223,4 +226,3 @@ impl SquashFSArchive {
         Self::create_with_reader(reader)
     }
 }
-

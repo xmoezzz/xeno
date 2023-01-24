@@ -1,4 +1,4 @@
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 use unrar::archive::OpenArchive;
 
@@ -16,7 +16,6 @@ pub struct RarEntry {
     size: u64,
     path: PathBuf,
 }
-
 
 impl Entry for RarEntry {
     fn file_type(&self) -> FileType {
@@ -55,7 +54,6 @@ impl Entry for RarEntry {
     }
 }
 
-
 pub struct RarEntries {
     inner: OpenArchive,
 }
@@ -77,26 +75,25 @@ impl RarEntries {
     }
 }
 
-impl RarArchive
-{
+impl RarArchive {
     pub fn entries(&mut self) -> Result<RarEntries, ArchiveError> {
         let archive = self.open_archive();
         let lister = archive.list().map_err(ArchiveError::RarError);
 
         let lister = lister?;
-        Ok(RarEntries {
-            inner: lister,
-        })
+        Ok(RarEntries { inner: lister })
     }
 
     pub fn unpack_all(&mut self, to: impl AsRef<Path>) -> Result<(), ArchiveError> {
         let archive = self.open_archive();
-        let to = to.as_ref().to_path_buf().into_os_string().into_string()
+        let to = to
+            .as_ref()
+            .to_path_buf()
+            .into_os_string()
+            .into_string()
             .map_err(ArchiveError::OsString)?;
-        let mut unpacker = archive.extract_to(to)
-            .map_err(ArchiveError::RarError)?;
-        let _ = unpacker.process()
-            .map_err(ArchiveError::RarError2)?;
+        let mut unpacker = archive.extract_to(to).map_err(ArchiveError::RarError)?;
+        let _ = unpacker.process().map_err(ArchiveError::RarError2)?;
         Ok(())
     }
 
@@ -109,9 +106,16 @@ impl RarArchive
         archive
     }
 
-    pub fn create_with_path(path: impl AsRef<Path>, password: Option<String>) -> Result<RarArchive, ArchiveError> {
+    pub fn create_with_path(
+        path: impl AsRef<Path>,
+        password: Option<String>,
+    ) -> Result<RarArchive, ArchiveError> {
         let archive = RarArchive {
-            filepath: path.as_ref().to_path_buf().into_os_string().into_string()
+            filepath: path
+                .as_ref()
+                .to_path_buf()
+                .into_os_string()
+                .into_string()
                 .map_err(ArchiveError::OsString)?,
             password: password,
         };

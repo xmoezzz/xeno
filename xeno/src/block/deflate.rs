@@ -1,4 +1,4 @@
-use std::io::{Read, BufReader, Write};
+use std::io::{BufReader, Read, Write};
 use std::path::Path;
 
 use flate2::read::DeflateDecoder;
@@ -9,7 +9,7 @@ pub struct FlateBlock<R: Read> {
     inner: DeflateDecoder<R>,
 }
 
-impl<R> FlateBlock<R> 
+impl<R> FlateBlock<R>
 where
     R: Read,
 {
@@ -37,10 +37,8 @@ where
 
     pub fn create_with_reader(rdr: impl Read) -> Result<FlateBlock<impl Read>, ArchiveError> {
         let reader = DeflateDecoder::new(rdr);
-        
-        let block = FlateBlock {
-            inner: reader,
-        };
+
+        let block = FlateBlock { inner: reader };
 
         Ok(block)
     }

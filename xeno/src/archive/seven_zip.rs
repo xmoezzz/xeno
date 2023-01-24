@@ -142,8 +142,6 @@ where
             return Err(ArchiveError::ExtractFailed { sources: failures });
         }
 
-        
-
         Ok(())
     }
 

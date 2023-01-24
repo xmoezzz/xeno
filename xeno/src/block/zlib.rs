@@ -1,4 +1,4 @@
-use std::io::{Read, BufReader, Write};
+use std::io::{BufReader, Read, Write};
 use std::path::Path;
 
 use flate2::read::ZlibDecoder;
@@ -9,7 +9,7 @@ pub struct ZlibBlock<R: Read> {
     inner: ZlibDecoder<R>,
 }
 
-impl<R> ZlibBlock<R> 
+impl<R> ZlibBlock<R>
 where
     R: Read,
 {
@@ -37,10 +37,8 @@ where
 
     pub fn create_with_reader(rdr: impl Read) -> Result<ZlibBlock<impl Read>, ArchiveError> {
         let reader = ZlibDecoder::new(rdr);
-        
-        let block = ZlibBlock {
-            inner: reader,
-        };
+
+        let block = ZlibBlock { inner: reader };
 
         Ok(block)
     }

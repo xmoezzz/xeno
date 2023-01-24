@@ -1,11 +1,7 @@
-use std::{
-    path::PathBuf,
-    ffi::OsString,
-};
+use std::{ffi::OsString, path::PathBuf};
 
 use thiserror::Error;
 use unrar::archive::OpenArchive;
-
 
 #[derive(Debug, Error)]
 pub enum ArchiveError {
