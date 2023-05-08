@@ -277,7 +277,8 @@ where
                     }
                 };
 
-                let data_attribute = data.to_attribute();
+                let data_attribute = data.to_attribute()
+                    .map_err(ArchiveError::NtfsError)?;
                 let mut data_value = match data_attribute.value(&mut reader) {
                     Ok(data_value) => data_value,
                     Err(e) => {
@@ -311,7 +312,7 @@ where
                         break;
                     }
 
-                    writer.write(&buf[..bytes_read])?;
+                    writer.write_all(&buf[..bytes_read])?;
                 }
             }
         }
@@ -375,7 +376,8 @@ where
                 return Err(err);
             }
         };
-        let data_attribute = data_item.to_attribute();
+        let data_attribute = data_item.to_attribute()
+            .map_err(ArchiveError::NtfsError)?;
         let mut data_value = match data_attribute.value(&mut reader) {
             Ok(data_value) => data_value,
             Err(e) => {
@@ -405,7 +407,7 @@ where
                 break;
             }
 
-            writer.write(&buf[..bytes_read])?;
+            writer.write_all(&buf[..bytes_read])?;
         }
 
         Ok(())

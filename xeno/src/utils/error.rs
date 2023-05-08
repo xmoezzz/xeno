@@ -24,7 +24,7 @@ pub enum ArchiveError {
     #[error("zip error: {0}")]
     ZipError(#[source] zip::result::ZipError),
     #[error("squashfs error: {0}")]
-    SquashfsError(#[source] backhand::error::SquashfsError),
+    SquashfsError(#[source] backhand::BackhandError),
     #[error("ntfs error: {0}")]
     NtfsError(#[source] ntfs::NtfsError),
     #[error("lzma error: {0}")]

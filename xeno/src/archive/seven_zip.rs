@@ -17,8 +17,8 @@ pub struct SevenZipEntry {
     is_file: bool,
     size: u64,
     path: PathBuf,
-    inner_creation_date: i64,
-    inner_last_modified_date: i64,
+    inner_creation_date: u64,
+    inner_last_modified_date: u64,
 }
 
 impl Entry for SevenZipEntry {
@@ -60,12 +60,12 @@ impl Entry for SevenZipEntry {
 
 impl SevenZipEntry {
     pub fn creation_date(&self) -> Option<PrimitiveDateTime> {
-        let dt = time::OffsetDateTime::from_unix_timestamp(self.inner_creation_date).ok();
+        let dt = time::OffsetDateTime::from_unix_timestamp(self.inner_creation_date as i64).ok();
         dt.map(|dt| PrimitiveDateTime::new(dt.date(), dt.time()))
     }
 
     pub fn last_modified_date(&self) -> Option<PrimitiveDateTime> {
-        let dt = time::OffsetDateTime::from_unix_timestamp(self.inner_last_modified_date).ok();
+        let dt = time::OffsetDateTime::from_unix_timestamp(self.inner_last_modified_date as i64).ok();
         dt.map(|dt| PrimitiveDateTime::new(dt.date(), dt.time()))
     }
 }
@@ -91,8 +91,8 @@ impl Iterator for ZipEntries {
             is_file: !entry.is_directory(),
             size: entry.size(),
             path: PathBuf::from(entry.name()),
-            inner_creation_date: entry.creation_date,
-            inner_last_modified_date: entry.last_modified_date,
+            inner_creation_date: entry.creation_date.into(),
+            inner_last_modified_date: entry.last_modified_date.into(),
         };
 
         self.current += 1;

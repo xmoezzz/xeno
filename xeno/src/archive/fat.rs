@@ -179,7 +179,7 @@ where
                         break;
                     }
 
-                    writer.write(&buf[..bytes_read])?;
+                    writer.write_all(&buf[..bytes_read])?;
                 }
             } else if entry.is_dir() {
                 let path = entry.file_name();
@@ -230,7 +230,7 @@ where
                 break;
             }
 
-            writer.write(&buf[..bytes_read])?;
+            writer.write_all(&buf[..bytes_read])?;
         }
         Ok(())
     }

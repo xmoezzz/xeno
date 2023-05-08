@@ -29,7 +29,7 @@ where
                 break;
             }
 
-            writer.write(&buf[..bytes_read])?;
+            writer.write_all(&buf[..bytes_read])?;
         }
 
         Ok(())

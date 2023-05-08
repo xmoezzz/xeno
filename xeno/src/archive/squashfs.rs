@@ -1,10 +1,11 @@
-use std::io::{Read, Seek};
-use std::path::{Path, PathBuf};
+use std::io::{Read, Seek, BufRead, BufReader};
+use std::path::{Path, PathBuf, Component};
 
-use backhand::filesystem::{
-    Filesystem, InnerNode, SquashfsBlockDevice, SquashfsCharacterDevice, SquashfsFile,
-    SquashfsPath, SquashfsSymlink,
+use backhand::{
+    FilesystemReader, InnerNode, SquashfsBlockDevice, SquashfsCharacterDevice, 
+    SquashfsDir, SquashfsSymlink, Node, SquashfsFileReader, Squashfs
 };
+
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -13,12 +14,12 @@ use crate::archive::{Entry, FileType};
 use crate::utils::error::ArchiveError;
 
 pub struct SquashFSArchive {
-    inner: Filesystem,
+    inner: FilesystemReader,
 }
 
 #[derive(Debug, Clone)]
 pub struct SquashFSEntry<'a> {
-    inner: &'a backhand::filesystem::Node,
+    inner: &'a Node<SquashfsFileReader>,
 }
 
 pub struct SquashFSEntries<'a> {
@@ -44,8 +45,7 @@ impl SquashFSArchive {
     pub fn entries(&mut self) -> Result<SquashFSEntries, ArchiveError> {
         let mut entries = self
             .inner
-            .nodes
-            .iter()
+            .files()
             .map(|n| SquashFSEntry { inner: n })
             .collect::<Vec<_>>();
 
@@ -61,22 +61,32 @@ impl SquashFSArchive {
             std::fs::create_dir_all(to)?;
         }
 
+        let (mut buf_read, mut buf_decompress) = self.inner.alloc_read_buffers();
+
         let mut failures = vec![];
-        for node in &self.inner.nodes {
-            let path = &node.path;
+        for node in self.inner.files() {
+            let path = &node.fullpath;
+            let path = path.strip_prefix(Component::RootDir).unwrap_or(path);
             match &node.inner {
-                InnerNode::File(SquashfsFile { bytes, .. }) => {
-                    let path: PathBuf = path.iter().skip(1).collect();
+                InnerNode::File(file) => {
+                    let filepath = Path::new(&to).join(path);
+
+                    let mut fd = std::fs::File::create(&filepath)?;
+                    let file_reader = self
+                        .inner
+                        .file(&file.basic);
+                    let mut reader = file_reader
+                        .reader(&mut buf_read, &mut buf_decompress);
+
                     log::debug!("file {}", path.display());
-                    let filepath = to.join(path);
-                    if let Err(e) = std::fs::write(&filepath, bytes) {
+                    if let Err(e) = std::io::copy(&mut reader, &mut fd)  {
                         let err = ArchiveError::Io(e);
                         failures.push(err);
                     }
                 }
                 InnerNode::Symlink(SquashfsSymlink { link, .. }) => {
                     let path: PathBuf = path.iter().skip(1).collect();
-                    log::debug!("symlink {} {}", path.display(), link);
+                    log::debug!("symlink {} {}", path.display(), link.display());
                     let filepath = to.join(path);
                     let link = to.join(&link);
 
@@ -100,14 +110,12 @@ impl SquashFSArchive {
                         }
                     }
                 }
-                InnerNode::Path(SquashfsPath { header, .. }) => {
-                    let path: PathBuf = path.iter().skip(1).collect();
-                    let path = to.join(&path);
-                    log::debug!("path {}", path.display());
+                InnerNode::Dir(SquashfsDir { .. }) => {
+                    let path = Path::new(&to).join(path);
                     let _ = std::fs::create_dir_all(&path);
                     cfg_if::cfg_if! {
                         if #[cfg(unix)] {
-                            let perms = std::fs::Permissions::from_mode(u32::from(header.permissions));
+                            let perms = std::fs::Permissions::from_mode(u32::from(node.header.permissions));
                             if let Err(e) = std::fs::set_permissions(&path, perms) {
                                 let err = ArchiveError::Io(e);
                                 failures.push(err);
@@ -116,13 +124,11 @@ impl SquashFSArchive {
                     }
                 }
                 InnerNode::CharacterDevice(SquashfsCharacterDevice {
-                    header: _,
                     device_number: _,
                 }) => {
                     log::info!("[-] character device not supported");
                 }
                 InnerNode::BlockDevice(SquashfsBlockDevice {
-                    header: _,
                     device_number: _,
                 }) => {
                     log::info!("[-] block device not supported");
@@ -142,21 +148,32 @@ impl SquashFSArchive {
         to: impl AsRef<Path>,
     ) -> Result<(), ArchiveError> {
         let to = to.as_ref();
-        let node = entry.inner;
-        let path = &node.path;
-        match &node.inner {
-            InnerNode::File(SquashfsFile { bytes, .. }) => {
-                let path: PathBuf = path.iter().skip(1).collect();
+        let path = &entry.inner.fullpath;
+        let path = path.strip_prefix(Component::RootDir).unwrap_or(path);
+        
+        // alloc required space for file data readers
+        let (mut buf_read, mut buf_decompress) = self.inner.alloc_read_buffers();
+
+        match &entry.inner.inner {
+            InnerNode::File(file) => {
+                let filepath = Path::new(&to).join(path);
                 log::debug!("file {}", path.display());
-                let filepath = to.join(path);
-                if let Err(e) = std::fs::write(&filepath, bytes) {
+
+                // write to file
+                let mut fd = std::fs::File::create(&filepath)?;
+                let file_reader = self
+                    .inner
+                    .file(&file.basic);
+                let mut reader = file_reader
+                    .reader(&mut buf_read, &mut buf_decompress);
+                if let Err(e) = std::io::copy(&mut reader, &mut fd) {
                     let err = ArchiveError::Io(e);
                     return Err(err);
                 }
             }
             InnerNode::Symlink(SquashfsSymlink { link, .. }) => {
                 let path: PathBuf = path.iter().skip(1).collect();
-                log::debug!("symlink {} {}", path.display(), link);
+                log::debug!("symlink {} {}", path.display(), link.display());
                 let filepath = to.join(path);
                 let link = to.join(&link);
 
@@ -180,14 +197,13 @@ impl SquashFSArchive {
                     }
                 }
             }
-            InnerNode::Path(SquashfsPath { header, .. }) => {
-                let path: PathBuf = path.iter().skip(1).collect();
-                let path = to.join(&path);
+            InnerNode::Dir(SquashfsDir { .. }) => {
+                let path = Path::new(&to).join(path);
                 log::debug!("path {}", path.display());
                 let _ = std::fs::create_dir_all(&path);
                 cfg_if::cfg_if! {
                     if #[cfg(unix)] {
-                        let perms = std::fs::Permissions::from_mode(u32::from(header.permissions));
+                        let perms = std::fs::Permissions::from_mode(u32::from(entry.inner.header.permissions));
                         if let Err(e) = std::fs::set_permissions(&path, perms) {
                             let err = ArchiveError::Io(e);
                             return Err(err);
@@ -196,13 +212,11 @@ impl SquashFSArchive {
                 }
             }
             InnerNode::CharacterDevice(SquashfsCharacterDevice {
-                header: _,
                 device_number: _,
             }) => {
                 log::info!("[-] character device not supported");
             }
             InnerNode::BlockDevice(SquashfsBlockDevice {
-                header: _,
                 device_number: _,
             }) => {
                 log::info!("[-] block device not supported");
@@ -214,7 +228,11 @@ impl SquashFSArchive {
     pub fn create_with_reader(
         rdr: impl Read + Seek + 'static,
     ) -> Result<SquashFSArchive, ArchiveError> {
-        let inner = Filesystem::from_reader(rdr).map_err(ArchiveError::SquashfsError)?;
+        let inner = 
+            Squashfs::from_reader(BufReader::new(rdr))
+                .map_err(ArchiveError::SquashfsError)?
+                .into_filesystem_reader()
+                .map_err(ArchiveError::SquashfsError)?;
 
         let archive = SquashFSArchive { inner };
 
